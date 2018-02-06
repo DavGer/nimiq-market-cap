@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8 />
+    <title>Nimiq Demo</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+
+    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
+    <script>
+
+        function _onConsensusEstablished() {
+            document.getElementById('height').innerText = $.blockchain.height;
+            document.getElementById("connected").className = 'connected green';
+            document.getElementById("connected-text").innerText = 'Connected to ' + $.network.peerCount + ' peers';
+            const height = $.blockchain.height;
+            _setCirculatingSupply(height);
+        }
+
+        function _onConsensusLost() {
+            document.getElementById("connected").className = 'connected red';
+            document.getElementById("connected-text").innerText = 'Disconnected';
+        }
+
+        function _getCurrentPrice() {
+            fetch('https://api.coinmarketcap.com/v1/ticker/nimiq/?convert=EUR').then(function(response) {
+                response.json().then(function(priceInfo) {
+                    if(!priceInfo && !priceInfo.length > 0) {
+                        alert('Can\'t fetch price from coinmarketcap.com');
+                    }
+
+                    $.priceInfo = priceInfo[0];
+
+                    //USD
+                    document.getElementById('current-price-dollar').innerText = _formatNumber($.priceInfo.price_usd) + ' $';
+                    document.getElementById('percent_change_1h_usd').innerText = $.priceInfo.percent_change_1h + ' %';
+                    $.priceInfo.percent_change_1h > 0 ? 
+                        document.getElementById('percent_change_1h_usd').style.color = '#0e630e' :
+                        document.getElementById('percent_change_1h_usd').style.color = '#990000';
+                    document.getElementById('percent_change_24h_usd').innerText = $.priceInfo.percent_change_24h + ' %';
+                    $.priceInfo.percent_change_24h > 0 ? 
+                        document.getElementById('percent_change_24h_usd').style.color = '#0e630e' :
+                        document.getElementById('percent_change_24h_usd').style.color = '#990000';
+                    document.getElementById('percent_change_7d_usd').innerText = $.priceInfo.percent_change_7d + ' %';
+                    $.priceInfo.percent_change_7d > 0 ? 
+                        document.getElementById('percent_change_7d_usd').style.color = '#0e630e' :
+                        document.getElementById('percent_change_7d_usd').style.color = '#990000';
+                    document.getElementById('price-info-loading-usd').style.display = 'none';
+                    document.getElementById('price-info-usd').style.display = 'block';
+
+                    //EUR
+                    document.getElementById('current-price-euro').innerText = '€ ' + _formatNumber($.priceInfo.price_eur);
+                    document.getElementById('percent_change_1h_eur').innerText = $.priceInfo.percent_change_1h + ' %';
+                    $.priceInfo.percent_change_1h > 0 ? 
+                        document.getElementById('percent_change_1h_eur').style.color = '#0e630e' :
+                        document.getElementById('percent_change_1h_eur').style.color = '#990000';
+                    document.getElementById('percent_change_24h_eur').innerText = $.priceInfo.percent_change_24h + ' %';
+                    $.priceInfo.percent_change_24h > 0 ? 
+                        document.getElementById('percent_change_24h_eur').style.color = '#0e630e' :
+                        document.getElementById('percent_change_24h_eur').style.color = '#990000';
+                    document.getElementById('percent_change_7d_eur').innerText = $.priceInfo.percent_change_7d + ' %';
+                    $.priceInfo.percent_change_7d > 0 ? 
+                        document.getElementById('percent_change_7d_eur').style.color = '#0e630e' :
+                        document.getElementById('percent_change_7d_eur').style.color = '#990000';
+                    document.getElementById('price-info-loading-eur').style.display = 'none';
+                    document.getElementById('price-info-eur').style.display = 'block';
+                });
+            });
+        }
+
+        function _setCirculatingSupply(height) {
+            var currentSupply = Nimiq.Policy.satoshisToCoins(Nimiq.Policy._supplyAfter(0, height)) + Nimiq.Policy.INITIAL_SUPPLY;
+            var currentSupplyFormatted = _formatNumber(currentSupply);
+            document.getElementById('current-supply').innerText = currentSupplyFormatted;
+            document.getElementById('supply-info-loading').style.display = 'none';
+            document.getElementById('supply-info').style.display = 'block';
+            if($.priceInfo) {
+                document.getElementById('market-cap').innerText = _formatNumber(currentSupply * $.priceInfo.price_usd) + ' $';
+            }
+        }
+
+
+        function _onHeadChanged() {
+            const height = $.blockchain.height;
+            _setCirculatingSupply(height);
+            document.getElementById('height-link').href = 'https://nimiq.watch/#' + height;
+            document.getElementById('height-link').innerText = '#' + height;
+            document.getElementById('height').style.display = 'none';
+            document.getElementById('height-link').style.display = '';
+        }
+
+        function _formatNumber(number) {
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(number);
+        }
+
+        function _onPeersChanged() {
+            if($.consensus.established) {
+                document.getElementById("connected-text").innerText = 'Connected: ' + $.network.peerCount + ' peers';
+            } else {
+                document.getElementById("connected-text").innerText = 'Synchronizing: ' + $.network.peerCount + ' peers';
+            }
+        }
+        (function init() {
+            Nimiq.init(async function() {    
+                const $ = {};
+                window.$ = $;
+                $.priceInfo;
+
+                _getCurrentPrice();
+
+                $.consensus = await Nimiq.Consensus.nano();
+        
+                $.blockchain = $.consensus.blockchain;
+                $.mempool = $.consensus.mempool;
+                $.network = $.consensus.network;
+        
+                $.consensus.on('established', () => _onConsensusEstablished());
+                $.consensus.on('lost', () => _onConsensusLost());
+        
+                $.blockchain.on('head-changed', () => _onHeadChanged());
+                $.network.on('peers-changed', () => _onPeersChanged());
+        
+                $.network.connect();
+                document.getElementById("connected-text").innerText = 'Connecting ' + $.network.peerCount + ' peers';
+                document.getElementById("connected").className = 'connected orange';
+            }, function(code) {
+                switch (code) {
+                    case Nimiq.ERR_WAIT:
+                        alert('Error: Already open in another tab or window.');
+                        break;
+                    case Nimiq.ERR_UNSUPPORTED:
+                        alert('Error: Browser not supported');
+                        break;
+                    default:
+                        alert('Error: Nimiq initialization error');
+                        break;
+                }
+            });
+        })();
+    </script>
+</head>
+<body>
+    <div class="container fill">
+        <div class="main">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <svg fill="#F6AE2D" xmlns="http://www.w3.org/2000/svg" width="34" height="30">
+                    <path d="M25.2 1H8.8l-8 14 8 14h16.4l8-14-8-14zm-6.7 22V26H16v-2.6c-1.5 0-3.3-.8-4.5-2l1.7-2.4c1.3 1 2.4 1.5 3.6 1.5 1.4 0 2-.6 2-1.7 0-2.6-6.7-2.6-6.7-7 0-2.6 1.6-4.3 4-4.8V4.2h2.5v2.6c1.6.2 2.8 1 3.8 2l-2 2.2c-.8-1-1.6-1.3-2.7-1.3-1.2 0-2 .5-2 1.6.2 2.4 7 2.2 7 7 0 2.4-1.5 4.3-4 4.8z"></path>
+                </svg>
+                <a class="navbar-brand ml-2" href="#"> Nimiq supply</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                    </ul>
+                    <div id="height" style="margin-right: 20px;">Loading...</div>
+                    <a id="height-link" href="#" style="margin-right: 20px; display:none"></a>
+                    <div id="connected" class="connected red" style="display: block;">
+                        <div id="connected-text">Disconnected</span>
+                    </div>
+                </div>
+            </nav>
+            <div class="row">
+                <div class="col-lg-12 mt-4 mb-4">
+                    <div class="card text-center">
+                        <div class="card-header">
+                            <i class="fas fa-microchip" style="color:rgb(146, 34, 34)"></i> Coins mined
+                        </div>
+                        <div class="card-body">
+                            <div id="supply-info-loading" style="display:block">
+                                <i class="fas fa-spinner fa-spin"></i>  Loading...
+                            </div>
+                            <div id="supply-info" style="display:none">
+                                <p>Current supply: <span id="current-supply">0</span> (testnet)</p>
+                                <p>Market cap: <span id="market-cap">0</span> (tesnet coins x current price)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card text-center">
+                        <div class="card-header">
+                            <i class="fas fa-dollar-sign" style="color:rgb(146, 34, 34)"></i> Price info (USD)
+                        </div>
+                        <div class="card-body">
+                            <div id="price-info-loading-usd" style="display:block">
+                                    <i class="fas fa-spinner fa-spin"></i>  Loading...
+                            </div>
+                            <div id="price-info-usd" style="display:none">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <div>Current price:</div>
+                                        <div id="current-price-dollar">0 $</div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div>Change 1hr:</div>
+                                        <div id="percent_change_1h_usd">0 %</div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div>Change 24hr:</div>
+                                        <div id="percent_change_24h_usd">0 %</div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div>Change 7d:</div>
+                                        <div id="percent_change_7d_usd">0 %</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card text-center">
+                        <div class="card-header">
+                            <i class="fas fa-euro-sign" style="color:rgb(146, 34, 34)"></i> Price info (EUR)
+                        </div>
+                        <div class="card-body">
+                            <div id="price-info-loading-eur" style="display:block">
+                                    <i class="fas fa-spinner fa-spin"></i>  Loading...
+                            </div>
+                            <div id="price-info-eur" style="display:none">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <div>Current price:</div>
+                                        <div id="current-price-euro">0 &euro;</div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div>Change 1hr:</div>
+                                        <div id="percent_change_1h_eur">0 %</div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div>Change 24hr:</div>
+                                        <div id="percent_change_24h_eur">0 %</div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div>Change 7d:</div>
+                                        <div id="percent_change_7d_eur">0 %</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+            <div class="footer text-center">Made by @DavGer</div>
+            <div style="height: 20px"></div>
+        </div>
+    </div>
+
+    <style>
+        html, body{
+            margin:0px;
+            padding:0px;
+            font-family: sans-serif;
+            background: rgb(163, 163, 163);
+            color: #000;
+            min-height: 100%;
+            height: 100%;
+        }
+        .connected {
+            border-radius: 5px;
+            text-align: center;
+            width: 250px;
+            height: 30px;
+            line-height: 30px;
+            color: #fff;
+        }
+        .connected.red {
+            background: rgb(216, 42, 42);
+        }
+        .connected.orange {
+            background: rgb(255, 176, 4);
+        }
+        .connected.green {
+            background: rgb(40, 212, 40);
+        }
+        .connected p {
+            color: #fff;
+        }
+        .container {
+            background: rgb(0, 0, 0);;
+        }
+        .navbar {
+            background-color: rgb(255, 255, 255) !important;
+        }
+        .card {
+            background: #fff;
+        }
+        .card-header {
+            background: rgb(255, 255, 255);
+            color: rgb(0, 0, 0);
+        }
+        .card-body {
+            color: #000;
+        }
+        .footer {
+            height: 40px;
+            line-height: 40px;
+            background: #fff;
+        }
+        .fill {
+            min-height: 100%;
+            height: 100%;
+        }
+        .main {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>
