@@ -37,41 +37,49 @@
 
                     $.priceInfo = priceInfo[0];
 
-                    //USD
-                    document.getElementById('current-price-dollar').innerText = _formatNumber($.priceInfo.price_usd) + ' $';
-                    document.getElementById('percent_change_1h_usd').innerText = $.priceInfo.percent_change_1h + ' %';
-                    $.priceInfo.percent_change_1h > 0 ? 
-                        document.getElementById('percent_change_1h_usd').style.color = '#0e630e' :
-                        document.getElementById('percent_change_1h_usd').style.color = '#990000';
-                    document.getElementById('percent_change_24h_usd').innerText = $.priceInfo.percent_change_24h + ' %';
-                    $.priceInfo.percent_change_24h > 0 ? 
-                        document.getElementById('percent_change_24h_usd').style.color = '#0e630e' :
-                        document.getElementById('percent_change_24h_usd').style.color = '#990000';
-                    document.getElementById('percent_change_7d_usd').innerText = $.priceInfo.percent_change_7d + ' %';
-                    $.priceInfo.percent_change_7d > 0 ? 
-                        document.getElementById('percent_change_7d_usd').style.color = '#0e630e' :
-                        document.getElementById('percent_change_7d_usd').style.color = '#990000';
-                    document.getElementById('price-info-loading-usd').style.display = 'none';
-                    document.getElementById('price-info-usd').style.display = 'block';
-
-                    //EUR
-                    document.getElementById('current-price-euro').innerText = '€ ' + _formatNumber($.priceInfo.price_eur);
-                    document.getElementById('percent_change_1h_eur').innerText = $.priceInfo.percent_change_1h + ' %';
-                    $.priceInfo.percent_change_1h > 0 ? 
-                        document.getElementById('percent_change_1h_eur').style.color = '#0e630e' :
-                        document.getElementById('percent_change_1h_eur').style.color = '#990000';
-                    document.getElementById('percent_change_24h_eur').innerText = $.priceInfo.percent_change_24h + ' %';
-                    $.priceInfo.percent_change_24h > 0 ? 
-                        document.getElementById('percent_change_24h_eur').style.color = '#0e630e' :
-                        document.getElementById('percent_change_24h_eur').style.color = '#990000';
-                    document.getElementById('percent_change_7d_eur').innerText = $.priceInfo.percent_change_7d + ' %';
-                    $.priceInfo.percent_change_7d > 0 ? 
-                        document.getElementById('percent_change_7d_eur').style.color = '#0e630e' :
-                        document.getElementById('percent_change_7d_eur').style.color = '#990000';
-                    document.getElementById('price-info-loading-eur').style.display = 'none';
-                    document.getElementById('price-info-eur').style.display = 'block';
+                    _setEuroValues();
+                    _setDollarValues();
                 });
             });
+        }
+        function _setDollarValues() {
+            //USD
+            document.getElementById('current-price-dollar').innerText = _formatNumber($.priceInfo.price_usd) + ' $';
+            document.getElementById('percent_change_1h_usd').innerText = $.priceInfo.percent_change_1h + ' %';
+            $.priceInfo.percent_change_1h > 0 ? 
+                document.getElementById('percent_change_1h_usd').style.color = '#0e630e' :
+                document.getElementById('percent_change_1h_usd').style.color = '#990000';
+            document.getElementById('percent_change_24h_usd').innerText = $.priceInfo.percent_change_24h + ' %';
+            $.priceInfo.percent_change_24h > 0 ? 
+                document.getElementById('percent_change_24h_usd').style.color = '#0e630e' :
+                document.getElementById('percent_change_24h_usd').style.color = '#990000';
+            document.getElementById('percent_change_7d_usd').innerText = $.priceInfo.percent_change_7d + ' %';
+            $.priceInfo.percent_change_7d > 0 ? 
+                document.getElementById('percent_change_7d_usd').style.color = '#0e630e' :
+                document.getElementById('percent_change_7d_usd').style.color = '#990000';
+            document.getElementById('price-info-loading-usd').style.display = 'none';
+            document.getElementById('price-info-usd').style.display = 'block';
+            document.getElementById('24h-volume-usd').innerText = _formatNumber($.priceInfo['24h_volume_usd']) + ' $';
+        }
+
+        function _setEuroValues() {
+            //EUR
+            document.getElementById('current-price-euro').innerText = '€ ' + _formatNumber($.priceInfo.price_eur);
+            document.getElementById('percent_change_1h_eur').innerText = $.priceInfo.percent_change_1h + ' %';
+            $.priceInfo.percent_change_1h > 0 ? 
+                document.getElementById('percent_change_1h_eur').style.color = '#0e630e' :
+                document.getElementById('percent_change_1h_eur').style.color = '#990000';
+            document.getElementById('percent_change_24h_eur').innerText = $.priceInfo.percent_change_24h + ' %';
+            $.priceInfo.percent_change_24h > 0 ? 
+                document.getElementById('percent_change_24h_eur').style.color = '#0e630e' :
+                document.getElementById('percent_change_24h_eur').style.color = '#990000';
+            document.getElementById('percent_change_7d_eur').innerText = $.priceInfo.percent_change_7d + ' %';
+            $.priceInfo.percent_change_7d > 0 ? 
+                document.getElementById('percent_change_7d_eur').style.color = '#0e630e' :
+                document.getElementById('percent_change_7d_eur').style.color = '#990000';
+            document.getElementById('price-info-loading-eur').style.display = 'none';
+            document.getElementById('price-info-eur').style.display = 'block';
+            document.getElementById('24h-volume-eur').innerText = '€ ' + _formatNumber($.priceInfo['24h_volume_eur']);
         }
 
         function _setCirculatingSupply(height) {
@@ -89,6 +97,8 @@
         function _onHeadChanged() {
             const height = $.blockchain.height;
             _setCirculatingSupply(height);
+            _getCurrentPrice();
+
             document.getElementById('height-link').href = 'https://nimiq.watch/#' + height;
             document.getElementById('height-link').innerText = '#' + height;
             document.getElementById('height').style.display = 'none';
@@ -179,7 +189,7 @@
                             </div>
                             <div id="supply-info" style="display:none">
                                 <p>Current supply: <span id="current-supply">0</span> (testnet)</p>
-                                <p>Market cap: <span id="market-cap">0</span> (tesnet coins x current price)</p>
+                                <p>Market cap: <span id="market-cap">0</span> (tesnet coins x current price NOT CORRECT for now!)</p>
                             </div>
                         </div>
                     </div>
@@ -215,6 +225,11 @@
                                         <div id="percent_change_7d_usd">0 %</div>
                                     </div>
                                 </div>
+                                <div style="height: 30px"></div>
+                                <div class="row" style="width: 100%; text-align:center;">
+                                    <div style="width: 50%">24hr volume:</div>
+                                    <div style="width: 50%" id="24h-volume-eur">0 &euro;</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -248,6 +263,11 @@
                                         <div id="percent_change_7d_eur">0 %</div>
                                     </div>
                                 </div>
+                                <div style="height: 30px"></div>
+                                <div class="row" style="width: 100%; text-align:center;">
+                                    <div style="width: 50%">24hr volume:</div>
+                                    <div style="width: 50%" id="24h-volume-usd">0 &euro;</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -265,8 +285,8 @@
             margin:0px;
             padding:0px;
             font-family: sans-serif;
-            background: rgb(163, 163, 163);
-            color: #000;
+            background: rgb(85, 85, 85);
+            color: rgb(0, 0, 0);
             min-height: 100%;
             height: 100%;
         }
@@ -291,7 +311,7 @@
             color: #fff;
         }
         .container {
-            background: rgb(0, 0, 0);;
+            background: rgb(85, 85, 85);;
         }
         .navbar {
             background-color: rgb(255, 255, 255) !important;
@@ -301,7 +321,7 @@
         }
         .card-header {
             background: rgb(255, 255, 255);
-            color: rgb(0, 0, 0);
+            color: rgb(85, 85, 85);
         }
         .card-body {
             color: #000;
