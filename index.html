@@ -50,7 +50,7 @@
         }
         function _setDollarValues() {
             //USD
-            document.getElementById('current-price-dollar').innerText = _formatNumber($.priceInfo.price_usd) + ' $';
+            document.getElementById('current-price-dollar').innerText = '$' + _formatNumber($.priceInfo.price_usd).toFixed(2);
             document.getElementById('percent_change_1h_usd').innerText = $.priceInfo.percent_change_1h + ' %';
             $.priceInfo.percent_change_1h > 0 ? 
                 document.getElementById('percent_change_1h_usd').style.color = '#0e630e' :
@@ -65,12 +65,12 @@
                 document.getElementById('percent_change_7d_usd').style.color = '#990000';
             document.getElementById('price-info-loading-usd').style.display = 'none';
             document.getElementById('price-info-usd').style.display = 'block';
-            document.getElementById('24h-volume-usd').innerText = _formatNumber($.priceInfo['24h_volume_usd']) + ' $';
+            document.getElementById('24h-volume-usd').innerText = '$' + _formatNumber($.priceInfo['24h_volume_usd']).toFixed(2);
         }
 
         function _setEuroValues() {
             //EUR
-            document.getElementById('current-price-euro').innerText = '€ ' + _formatNumber($.priceInfo.price_eur);
+            document.getElementById('current-price-euro').innerText = '€ ' + _formatNumber($.priceInfo.price_eur).toFixed(2);
             document.getElementById('percent_change_1h_eur').innerText = $.priceInfo.percent_change_1h + ' %';
             $.priceInfo.percent_change_1h > 0 ? 
                 document.getElementById('percent_change_1h_eur').style.color = '#0e630e' :
@@ -85,7 +85,7 @@
                 document.getElementById('percent_change_7d_eur').style.color = '#990000';
             document.getElementById('price-info-loading-eur').style.display = 'none';
             document.getElementById('price-info-eur').style.display = 'block';
-            document.getElementById('24h-volume-eur').innerText = '€ ' + _formatNumber($.priceInfo['24h_volume_eur']);
+            document.getElementById('24h-volume-eur').innerText = '€ ' + _formatNumber($.priceInfo['24h_volume_eur']).toFixed(2);
         }
 
         function _setCirculatingSupply(height) {
@@ -95,7 +95,7 @@
             document.getElementById('supply-info-loading').style.display = 'none';
             document.getElementById('supply-info').style.display = 'block';
             if($.priceInfo) {
-                document.getElementById('market-cap').innerText = _formatNumber(currentSupply * $.priceInfo.price_usd) + ' $';
+                document.getElementById('market-cap').innerText = '$' + _formatNumber(currentSupply * $.priceInfo.price_usd).toFixed(2);
             }
         }
 
@@ -206,7 +206,7 @@
                             </div>
                             <div id="supply-info" style="display:none">
                                 <p>Current supply: <span id="current-supply">0</span> (testnet)</p>
-                                <p>Market cap: <span id="market-cap">0</span> (tesnet coins x current price NOT CORRECT for now!)</p>
+                                <p>Market cap: <span id="market-cap">0</span> (testnet coins x current price NOT CORRECT for now!)</p>
                             </div>
                         </div>
                     </div>
