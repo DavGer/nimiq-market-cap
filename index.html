@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-    <script type="text/javascript" src="https://cdn.nimiq.com/core/nimiq.js"></script>
+    <script type="text/javascript" src="https://cdn.nimiq-testnet.com/nimiq.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/whatwg-fetch"></script>
     <script type="text/javascript" src="scripts/moment.js"></script>
 
@@ -92,7 +92,7 @@
         }
 
         function _getCirculatingSupply(height) {
-            return Nimiq.Policy.satoshisToCoins(Nimiq.Policy.supplyAfter(height)) + Nimiq.Policy.INITIAL_SUPPLY;
+            return Nimiq.Policy.satoshisToCoins(Nimiq.Policy.supplyAfter(height));
         }
 
         function _setCirculatingSupply(height) {
@@ -101,9 +101,11 @@
             document.getElementById('current-supply').innerText = currentSupplyFormatted;
             document.getElementById('supply-info-loading').style.display = 'none';
             document.getElementById('supply-info').style.display = 'block';
-            if($.priceInfo) {
-                document.getElementById('market-cap').innerText = '$' + _formatNumber(currentSupply * $.priceInfo.price_usd);
-            }
+
+            //TODO add for market cap
+            // if($.priceInfo) {
+                // document.getElementById('market-cap').innerText = '$' + _formatNumber(currentSupply * $.priceInfo.price_usd);
+            // }
         }
 
         function _calculateBlockHeightByDate(date) {
@@ -113,8 +115,8 @@
             
             var momentDate = moment(date);
             //Block 35000 in luna
-            const genesisBlock = 35000;
-            const genesisBlockDate = moment('2017-12-14 15:55:37');
+            const genesisBlock = 1;
+            const genesisBlockDate = moment('2018-04-14 19:30:00');
             var duration = moment.duration(momentDate.diff(genesisBlockDate));
             var minutesPassed = Math.floor(duration.asMinutes());
 
@@ -153,36 +155,43 @@
         }
         (function init() {
             Nimiq.init(async function() {    
-                const $ = {};
-                window.$ = $;
+                Nimiq.GenesisConfig.test();
+
                 $.priceInfo;
 
                 _getCurrentPrice();
 
-                $.consensus = await Nimiq.Consensus.nano();
-        
-                $.blockchain = $.consensus.blockchain;
-                $.mempool = $.consensus.mempool;
-                $.network = $.consensus.network;
-        
-                $.consensus.on('established', () => _onConsensusEstablished());
-                $.consensus.on('lost', () => _onConsensusLost());
-        
-                $.blockchain.on('head-changed', () => _onHeadChanged());
-                $.network.on('peers-changed', () => _onPeersChanged());
-        
-                $.network.connect();
-                document.getElementById("connected-text").innerText = 'Connecting ' + $.network.peerCount + ' peers';
-                document.getElementById("connected").className = 'connected orange';
+                Nimiq.Consensus.volatileNano().then(function(nanoConsensus) {
+                    var $ = {};
+                    window.$ = $;
+    
+                    $.consensus = nanoConsensus;
+    
+                    $.blockchain = $.consensus.blockchain;
+                    $.network    = $.consensus.network;
+    
+                    $.consensus.on('established', _onConsensusEstablished);
+                    $.consensus.on('lost', _onConsensusLost);
+    
+                    $.blockchain.on('head-changed', _onHeadChanged);
+                    _onHeadChanged($.blockchain.head);
+    
+                    $.network.on('peers-changed', _onPeersChanged);
+    
+                    $.network.connect();
 
-                flatpickr(document.getElementById('date-input'), {    
-                    dateFormat: 'Y-m-d H:i',
-                    minDate: '2017-12-15',
-                    maxDate: 'today',
-                    onValueUpdate: function(selectedDates, dateStr) {
-                        _calculateBlockHeightByDate(selectedDates[0]);
-                    }
-                });
+                    document.getElementById("connected-text").innerText = 'Connecting ' + $.network.peerCount + ' peers';
+                    document.getElementById("connected").className = 'connected orange';
+
+                    flatpickr(document.getElementById('date-input'), {    
+                        dateFormat: 'Y-m-d H:i',
+                        minDate: '2018-04-14',
+                        maxDate: 'today',
+                        onValueUpdate: function(selectedDates, dateStr) {
+                            _calculateBlockHeightByDate(selectedDates[0]);
+                        }
+                    });
+                });   
             }, function(code) {
                 switch (code) {
                     case Nimiq.ERR_WAIT:
@@ -243,8 +252,8 @@
                                 <i class="fas fa-spinner fa-spin"></i>  Loading...
                             </div>
                             <div id="supply-info" style="display:none">
-                                <p>Current supply: <span id="current-supply">0</span> (testnet)</p>
-                                <p>Market cap: <span id="market-cap">0</span> (testnet coins x current price NOT CORRECT for now!)</p>
+                                <p>Current supply: <span id="current-supply">0</span></p>
+                                <p>Market cap: <span id="market-cap">0</span> (waiting for exchanges)</p>
                             </div>
                         </div>
                     </div>
@@ -265,7 +274,7 @@
                                             readonly="readonly"
                                             data-input>
                                     </p>
-                                    <p>~ Supply on <span id="current-supply-since-date" style="display:none">0</span>: <span id="current-supply-since">Select a date</span> (testnet)</p>
+                                    <p>~ Supply on <span id="current-supply-since-date" style="display:none">0</span>: <span id="current-supply-since">Select a date</span></p>
                             </div>
                         </div>
                     </div>
