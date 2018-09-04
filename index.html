@@ -54,7 +54,7 @@
         }
         function _setDollarValues() {
             //USD
-            document.getElementById('current-price-dollar').innerText = '$' + _formatNumber($.priceInfo.price_usd);
+            document.getElementById('current-price-dollar').innerText = '$' + _formatNumberPrice($.priceInfo.price_usd);
             document.getElementById('percent_change_1h_usd').innerText = $.priceInfo.percent_change_1h + ' %';
             $.priceInfo.percent_change_1h > 0 ? 
                 document.getElementById('percent_change_1h_usd').style.color = '#0e630e' :
@@ -74,7 +74,7 @@
 
         function _setEuroValues() {
             //EUR
-            document.getElementById('current-price-euro').innerText = '€ ' + _formatNumber($.priceInfo.price_eur);
+            document.getElementById('current-price-euro').innerText = '€ ' + _formatNumberPrice($.priceInfo.price_eur);
             document.getElementById('percent_change_1h_eur').innerText = $.priceInfo.percent_change_1h + ' %';
             $.priceInfo.percent_change_1h > 0 ? 
                 document.getElementById('percent_change_1h_eur').style.color = '#0e630e' :
@@ -100,13 +100,14 @@
             var currentSupply = _getCirculatingSupply(height);
             var currentSupplyFormatted = _formatNumber(currentSupply)
             document.getElementById('current-supply').innerText = currentSupplyFormatted;
+
+            if($.priceInfo) {
+                document.getElementById('market-cap-usd').innerText = '$' + _formatNumber($.priceInfo.market_cap_usd);
+                document.getElementById('market-cap-eur').innerText = '€' + _formatNumber($.priceInfo.market_cap_eur);
+            }
+
             document.getElementById('supply-info-loading').style.display = 'none';
             document.getElementById('supply-info').style.display = 'block';
-
-            //TODO add for market cap
-            // if($.priceInfo) {
-                // document.getElementById('market-cap').innerText = '$' + _formatNumber(currentSupply * $.priceInfo.price_usd);
-            // }
         }
 
         function _calculateBlockHeightByDate(date) {
@@ -141,6 +142,10 @@
 
         function _formatNumber(number) {
             return new Intl.NumberFormat('en-US', {  minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
+        }
+
+        function _formatNumberPrice(number) {
+            return new Intl.NumberFormat('en-US', {  minimumFractionDigits: 2, maximumFractionDigits: 6 }).format(number);
         }
 
         function _onPeersChanged() {
@@ -304,7 +309,8 @@
                             </div>
                             <div id="supply-info" style="display:none">
                                 <p>Current supply: <span id="current-supply">0</span></p>
-                                <p>Market cap: <span id="market-cap">0</span> (waiting for exchanges)</p>
+                                <p>Market cap (USD): <span id="market-cap-usd">0</span></p>
+                                <p>Market cap (EUR): <span id="market-cap-eur">0</span></p>
                             </div>
                         </div>
                     </div>
